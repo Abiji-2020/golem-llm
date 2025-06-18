@@ -1,9 +1,8 @@
 pub mod config;
 pub mod durability;
-pub mod error;
-
+pub mod errors;
 wit_bindgen::generate!({
-    path: "../wit",
+    path: "../wit-vector",
     world: "vector-library",
     generate_all,
     generate_unused_types: true,
@@ -11,8 +10,8 @@ wit_bindgen::generate!({
     pub_export_macro: true,
 });
 
-pub use crate::exports::golem::vector;
-pub use __export_vector_library_impl as export_embed;
+pub use crate::exports::golem;
+pub use __export_vector_library_impl as export_vector;
 use std::cell::RefCell;
 use std::str::FromStr;
 
@@ -21,11 +20,12 @@ pub struct LoggingState {
 }
 
 impl LoggingState {
+    /// Initializes WASI logging based on the `GOLEM_VECTOR_LOG` environment variable.
     pub fn init(&mut self) {
         if !self.logging_initialized {
             let _ = wasi_logger::Logger::install();
             let max_level: log::LevelFilter =
-                log::LevelFilter::from_str(&std::env::var("GOLEM_LLM_LOG").unwrap_or_default())
+                log::LevelFilter::from_str(&std::env::var("GOLEM_VECTOR_LOG").unwrap_or_default())
                     .unwrap_or(log::LevelFilter::Info);
             log::set_max_level(max_level);
             self.logging_initialized = true;
@@ -34,6 +34,7 @@ impl LoggingState {
 }
 
 thread_local! {
+    /// This holds the state of our application.
     pub static LOGGING_STATE: RefCell<LoggingState> = const { RefCell::new(LoggingState {
         logging_initialized: false,
     }) };

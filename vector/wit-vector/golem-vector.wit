@@ -66,38 +66,39 @@ interface types {
         jaccard,
     }
     
-    /// Metadata value types
-    type flat-metadata-object = list<tuple<string, flat-metadata-leaf>>;
-
-variant flat-metadata-value {
-    string-val(string),
-    number-val(f64),
-    integer-val(s64),
-    boolean-val(bool),
-    array-val(list<flat-metadata-leaf>),
-    object-val(flat-metadata-object),
-    null-val,
-    geo-val(geo-coordinates),
-    datetime-val(string),
-    blob-val(list<u8>),
-}
-
-variant flat-metadata-leaf {
-    string-val(string),
-    number-val(f64),
-    integer-val(s64),
-    boolean-val(bool),
-    null-val,
-    datetime-val(string),
-    geo-val(geo-coordinates),
-    blob-val(list<u8>),
-}
-
-    
     /// Geographic coordinates
     record geo-coordinates {
         latitude: f64,
         longitude: f64,
+    }
+    
+    /// Metadata leaf values (primitive types only)
+    variant flat-metadata-leaf {
+        string-val(string),
+        number-val(f64),
+        integer-val(s64),
+        boolean-val(bool),
+        null-val,
+        datetime-val(string),
+        geo-val(geo-coordinates),
+        blob-val(list<u8>),
+    }
+    
+    /// Metadata object type
+    type flat-metadata-object = list<tuple<string, flat-metadata-leaf>>;
+    
+    /// Metadata value types (supports arrays and objects)
+    variant flat-metadata-value {
+        string-val(string),
+        number-val(f64),
+        integer-val(s64),
+        boolean-val(bool),
+        array-val(list<flat-metadata-leaf>),
+        object-val(flat-metadata-object),
+        null-val,
+        geo-val(geo-coordinates),
+        datetime-val(string),
+        blob-val(list<u8>),
     }
     
     /// Key-value metadata
@@ -143,30 +144,33 @@ variant flat-metadata-leaf {
         value: flat-metadata-value,
     }
     
-    /// Complex filter expressions with boolean logic
- /// Supported filter operations
-variant filter-op {
-    condition,
-    and,
-    or,
-    not,
-}
-
-/// Each expression is a node in a flat list
-record filter-node {
-    id: u32, // unique node ID
-    op: filter-op,
-    condition: option<filter-condition>,
-    inputs: list<u32>, // IDs of child nodes (for and/or/not), empty for condition
-}
-
-/// Top-level flat filter expression
-record filter-expression {
-    nodes: list<filter-node>,
-    root-id: u32, // the node that represents the root of the expression
-}
-
-
+    /// Supported filter operations
+    variant filter-op {
+        condition,
+        and,
+        or,
+        not,
+    }
+    
+    /// Each expression is a node in a flat list
+    record filter-node {
+        /// Unique node ID
+        id: u32,
+        /// Operation type
+        op: filter-op,
+        /// Condition data (for condition nodes)
+        condition: option<filter-condition>,
+        /// IDs of child nodes (for and/or/not), empty for condition
+        inputs: list<u32>,
+    }
+    
+    /// Top-level flat filter expression
+    record filter-expression {
+        /// List of all nodes in the expression
+        nodes: list<filter-node>,
+        /// The node that represents the root of the expression
+        root-id: u32,
+    }
     
     /// Vector record for storage operations
     record vector-record {
@@ -216,25 +220,6 @@ record filter-expression {
         connection-error(string),
     }
     
-// --error--
-    enum error-code {
-    invalid-request,
-    model-not-found,
-    unsupported,
-    authentication-failed, 
-    provider-error,
-    rate-limit-exceeded,
-    internal-error,
-    unknown,
-    }
-    // --- Error Handling ---
-
-  record error {
-    code: error-code,
-    message: string,
-    provider-error-json: option<string>,
-  }
-
 }
 
 /// Collection/index management and configuration
@@ -258,7 +243,7 @@ interface collections {
         index-ready: bool,
         created-at: option<u64>,
         updated-at: option<u64>,
-        provider-stats: option<metadata>
+        provider-stats: option<metadata>,
     }
     
     /// Create or update collection (upsert)
@@ -436,17 +421,18 @@ interface search {
     ) -> result<list<list<search-result>>, vector-error>;
 }
 
-
 /// Extended search capabilities (provider-dependent)
 interface search-extended {
     use types.{id, vector-data, search-result, filter-expression, vector-error, flat-metadata-value};
     use search.{search-query};
+    
     /// Recommendation example types
     variant recommendation-example {
         vector-id(id),
         vector-data(vector-data),
     }
     
+    /// Recommendation strategies
     enum recommendation-strategy {
         average-vector,
         best-score,
@@ -540,11 +526,13 @@ interface analytics {
         distance-distribution: option<distance-stats>,
     }
     
+    /// Namespace statistics
     record namespace-stats {
         vector-count: u64,
         size-bytes: u64,
     }
     
+    /// Distance distribution statistics
     record distance-stats {
         min-distance: f32,
         max-distance: f32,
@@ -631,6 +619,7 @@ interface namespaces {
 interface connection {
     use types.{vector-error, metadata};
     
+    /// Authentication credentials
     variant credentials {
         api-key(string),
         username-password(tuple<string, string>),
@@ -639,6 +628,7 @@ interface connection {
         oauth(oauth-config),
     }
     
+    /// OAuth configuration
     record oauth-config {
         client-id: string,
         client-secret: option<string>,
@@ -678,7 +668,9 @@ interface connection {
     ) -> result<bool, vector-error>;
 }
 
+/// Main vector library world
 world vector-library {
+    export types;
     export connection;
     export collections;
     export vectors;
@@ -686,6 +678,9 @@ world vector-library {
     export search-extended;
     export analytics;
     export namespaces;
-    
 }
 
+/// Connection-only world
+world connections {
+    export connection;
+}

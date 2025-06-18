@@ -1,12 +1,7 @@
 [package]
 name = "golem-vector"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
-license = "Apache-2.0"
-homepage = "https://golem.cloud"
-repository = "https://github.com/golemcloud/golem-llm"
-description = "WebAssembly components for working with the Vector databases with special support for Golem Cloud" 
-
 
 [lib]
 path = "src/lib.rs"
@@ -20,7 +15,7 @@ nom = { version = "7.1", default-features = false }
 reqwest = { workspace = true }
 thiserror = "2.0.12"
 wasi-logger = "0.1.2"
-wit-bindgen = { version = "0.40.0" }
+wit-bindgen = { version = "0.42.1" }
 
 [features]
 default = ["durability"]
