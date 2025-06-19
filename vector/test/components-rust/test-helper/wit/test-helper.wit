@@ -1,0 +1,11 @@
+package test:helper;
+
+// See https://component-model.bytecodealliance.org/design/wit.html for more details about the WIT syntax
+
+interface test-helper-api {
+  inc-and-get: func() -> u64;
+}
+
+world test-helper {
+  export test-helper-api;
+}

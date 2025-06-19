@@ -1,0 +1,40 @@
+# Schema for IDEA:
+# $schema: https://schema.golem.cloud/app/golem/1.2.4/golem.schema.json
+# Schema for vscode-yaml
+# yaml-language-server: $schema=https://schema.golem.cloud/app/golem/1.2.4/golem.schema.json
+
+# See https://learn.golem.cloud/docs/app-manifest#field-reference for field reference
+# For creating APIs see https://learn.golem.cloud/invoke/making-custom-apis
+
+components:
+  test:vector:
+    profiles:
+      qdrant-debug:
+        build: 
+          - command: cargo component build --no-default-features --features qdrant
+            sources:
+              - src
+              - wit-generated
+              - ../../common-rust
+            targets:
+              - ../../target/wasm32-wasip1/debug/test_vector.wasm
+          - command: wac plug --plug ../../../../target/wasm32-wasip1/debug/vector_qdrant.wasm ../../target/wasm32-wasip1/debug/test_vector.wasm -o ../../target/wasm32-wasip1/debug/test_qdrant_plugged.wasm
+            sources:
+              - ../../../../target/wasm32-wasip1/debug/vector_qdrant.wasm
+              - ../../target/wasm32-wasip1/debug/test_vector.wasm
+            targets:
+              - ../../target/wasm32-wasip1/debug/test_qdrant_plugged.wasm
+        sourceWit: wit
+        generatedWit: wit-generated
+        componentWasm: ../../target/wasm32-wasip1/debug/test_qdrant_plugged.wasm
+        clean:
+          - src/bindings.rs
+    defaultProfile: qdrant-debug
+# Example for adding dependencies for Worker to Worker communication:
+# See https://learn.golem.cloud/docs/app-manifest#fields_dependencies for more information
+#
+
+dependencies:
+  test:vector:
+  - target: test:helper
+    type: wasm-rpc

@@ -1,0 +1,44 @@
+[package]
+name = "test_vector"
+version = "0.0.1"
+edition = "2021"
+
+[package.metadata]
+
+[package.metadata.component]
+package = "test:vector"
+
+[package.metadata.component.target]
+path = "wit-generated"
+
+[package.metadata.component.target.dependencies]
+"wasi:io" = { path = "wit-generated/deps/io" }
+"wasi:clocks" = { path = "wit-generated/deps/clocks" }
+"golem:rpc" = { path = "wit-generated/deps/golem-rpc" }
+"golem:vector" = { path = "wit-generated/deps/golem-vector" }
+"test:helper-client" = { path = "wit-generated/deps/test_helper-client" }
+"test:vector-exports" = { path = "wit-generated/deps/test_vector-exports" }
+
+[package.metadata.component.bindings.with]
+"wasi:io/poll@0.2.3" = "golem_rust::wasm_rpc::wasi::io::poll"
+"wasi:clocks/wall-clock@0.2.3" = "golem_rust::wasm_rpc::wasi::clocks::wall_clock"
+"golem:rpc/types@0.2.1" = "golem_rust::wasm_rpc::golem_rpc_0_2_x::types"
+
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+required-features = []
+
+[features]
+default = ["qdrant"]
+qdrant = []
+
+[dependencies]
+wit-bindgen-rt = { workspace = true }
+golem-rust = { workspace = true }
+log = { version = "0.4.27" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
